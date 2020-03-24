@@ -31,13 +31,13 @@
 </ul>
     {% else %}
     <li>
+      <a href="{%url 'index'%}"><span class="glyphicon glyphicon-log-out"></span> Home</a>
+    </li>
+    <li>
       <a  href="/accounts/login"><span class="glyphicon glyphicon-log-in"></span> Login</a>
     </li>
     <li>
       <a  href="/accounts/register"><span class="glyphicon glyphicon-pencil"></span> Sign up</a>
-    </li>
-    <li>
-      <a  href="/accounts/login"><span class="glyphicon glyphicon-upload"></span> Post</a>
     </li>
     {% endif %}
     {%endblock%}
