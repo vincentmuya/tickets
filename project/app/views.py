@@ -11,8 +11,8 @@ import json
 
 # Create your views here.
 def getAccessToken(request):
-    consumer_key = "rC5JYdE2Kf0ivU6C0BHyG0Cp0PGi9rIZ"
-    consumer_secret= "Cb1ZOEx9Qv8VOvXg"
+    consumer_key = "XYwgaaqxewEJGmqEoR56d1D4nv1qMDET"
+    consumer_secret= "LEUhc9liIgNAi8x2"
     api_URL = "https://sandbox.safaricom.co.ke/oauth/v1/generate?grant_type=client_credentials"
 
     r = requests.get(api_URL, auth=HTTPBasicAuth(consumer_key, consumer_secret))
