@@ -27,7 +27,7 @@ SECRET_KEY = '^(lmk1&bvv91di^h!me4z)&8&x40&0@n%$&8r3o#b!y4ia&k%%'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ["https://e1599e8e.ngrok.io", "127.0.0.1", "localhost"]
 
 LOGIN_REDIRECT_URL ='/'
 LOGOUT_REDIRECT_URL = '/'

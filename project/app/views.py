@@ -50,8 +50,8 @@ def register_urls(request):
     headers = {"Authorization": "Bearer %s" % access_token}
     options = {"ShortCode": LipanaMpesaPpassword.Business_short_code,
                "ResponseType": "Completed",
-               "ConfirmationURL": "http://127.0.0.1:8000/api/v1/c2b/confirmation",
-               "ValidationURL": "http://127.0.0.1:8000/api/v1/c2b/validation"}
+               "ConfirmationURL": "https://e1599e8e.ngrok.io/api/v1/c2b/confirmation",
+               "ValidationURL": "https://e1599e8e.ngrok.io/api/v1/c2b/validation"}
     response = requests.post(api_url, json=options, headers=headers)
     return HttpResponse(response.text)
 
@@ -66,6 +66,7 @@ def validation(request):
         "ResultDesc": "Accepted"
     }
     return JsonResponse(dict(context))
+
 @csrf_exempt
 def confirmation(request):
     mpesa_body =request.body.decode('utf-8')
