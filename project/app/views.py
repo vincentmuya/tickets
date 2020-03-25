@@ -1,14 +1,14 @@
 from django.shortcuts import render, get_object_or_404, redirect
-from django.http  import HttpResponse
+from django.http  import HttpResponse, JsonResponse
 from django.contrib.auth.decorators import login_required
-from .models import Profile
+from .models import Profile, MpesaPayment
 from django.db import transaction
 from .forms import UserForm,ProfileForm
 import requests
 from requests.auth import HTTPBasicAuth
 import json
 from .mpesa_credentials import MpesaAccessToken, LipanaMpesaPpassword
-
+from django.views.decorators.csrf import csrf_exempt
 
 # Create your views here.
 def getAccessToken(request):
@@ -19,10 +19,9 @@ def getAccessToken(request):
     r = requests.get(api_URL, auth=HTTPBasicAuth(consumer_key, consumer_secret))
     mpesa_access_token = json.loads(r.text)
     validated_mpesa_access_token = mpesa_access_token['access_token']
-    testing = "Hello World"
-    context = {"validated_mpesa_access_token":validated_mpesa_access_token, "testing":testing}
-    # return HttpResponse(validated_mpesa_access_token)
-    return render(request, 'accesstoken.html',context )
+    # context = {"validated_mpesa_access_token":validated_mpesa_access_token, "testing":testing}
+    return HttpResponse(validated_mpesa_access_token)
+    # return render(request, 'accesstoken.html',context )
 
 def lipa_na_mpesa_online(request):
     access_token = MpesaAccessToken.validated_mpesa_access_token
@@ -43,6 +42,51 @@ def lipa_na_mpesa_online(request):
     }
     response = requests.post(api_url, json=request, headers=headers)
     return HttpResponse('success')
+
+@csrf_exempt
+def register_urls(request):
+    access_token =  MpesaAccessToken.validated_mpesa_access_token
+    api_url = "https://sandbox.safaricom.co.ke/mpesa/c2b/v1/registerurl"
+    headers = {"Authorization": "Bearer %s" % access_token}
+    options = {"ShortCode": LipanaMpesaPpassword.Business_short_code,
+               "ResponseType": "Completed",
+               "ConfirmationURL": "http://127.0.0.1:8000/api/v1/c2b/confirmation",
+               "ValidationURL": "http://127.0.0.1:8000/api/v1/c2b/validation"}
+    response = requests.post(api_url, json=options, headers=headers)
+    return HttpResponse(response.text)
+
+@csrf_exempt
+def call_back(request):
+    pass
+
+@csrf_exempt
+def validation(request):
+    context = {
+        "ResultCode": 0,
+        "ResultDesc": "Accepted"
+    }
+    return JsonResponse(dict(context))
+@csrf_exempt
+def confirmation(request):
+    mpesa_body =request.body.decode('utf-8')
+    mpesa_payment = json.loads(mpesa_body)
+    payment = MpesaPayment(
+        first_name=mpesa_payment['FirstName'],
+        last_name=mpesa_payment['LastName'],
+        middle_name=mpesa_payment['MiddleName'],
+        description=mpesa_payment['TransID'],
+        phone_number=mpesa_payment['MSISDN'],
+        amount=mpesa_payment['TransAmount'],
+        reference=mpesa_payment['BillRefNumber'],
+        organization_balance=mpesa_payment['OrgAccountBalance'],
+        type=mpesa_payment['TransactionType'],
+    )
+    payment.save()
+    context = {
+        "ResultCode": 0,
+        "ResultDesc": "Accepted"
+    }
+    return JsonResponse(dict(context))
 
 def index(request):
     return render(request, 'index.html')
