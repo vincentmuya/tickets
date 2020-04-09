@@ -4,8 +4,9 @@ from django.conf.urls import url
 from . import views
 from django.urls import path
 
+
 urlpatterns=[
-    url(r'^$',views.index, name ='index'),
+    url(r'^$',views.callback, name ='callback'),
     url(r'^profile/(?P<username>[\w\-]+)/$', views.profile, name='profile'),
     url(r'^edit/profile/(\d+)$', views.update_profile, name='update-profile'),
     url('access/token', views.getAccessToken, name='get_mpesa_access_token'),

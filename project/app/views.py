@@ -12,7 +12,7 @@ from django.views.decorators.csrf import csrf_exempt
 
 # Create your views here.
 @csrf_exempt
-def index(request):
+def callback(request):
     if request.method == "POST":
         session_id = request.POST.get("sessionId")
         service_code = request.POST.get("serviceCode")
@@ -107,9 +107,6 @@ def confirmation(request):
         "ResultDesc": "Accepted"
     }
     return JsonResponse(dict(context))
-
-def index(request):
-    return render(request, 'index.html')
 
 @login_required(login_url='/accounts/login')
 def profile(request, username):
