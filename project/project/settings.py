@@ -26,8 +26,10 @@ SECRET_KEY = '^(lmk1&bvv91di^h!me4z)&8&x40&0@n%$&8r3o#b!y4ia&k%%'
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
+CSRF_COOKIE_SECURE = True
+CSRF_COOKIE_HTTPONLY = True
 
-ALLOWED_HOSTS = ["f2b8ec64.ngrok.io", "127.0.0.1", "localhost"]
+ALLOWED_HOSTS = ["a060dff1.ngrok.io", "127.0.0.1", "localhost"]
 
 LOGIN_REDIRECT_URL ='/'
 LOGOUT_REDIRECT_URL = '/'

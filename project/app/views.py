@@ -11,6 +11,27 @@ from .mpesa_credentials import MpesaAccessToken, LipanaMpesaPpassword
 from django.views.decorators.csrf import csrf_exempt
 
 # Create your views here.
+@csrf_exempt
+def index(request):
+    if request.method == "POST":
+        session_id = request.POST.get("sessionId")
+        service_code = request.POST.get("serviceCode")
+        phone_number = request.POST.get("phoneNumber")
+        text = request.POST.get("text")
+
+        response = ""
+
+        if text == "":
+            response = "CON What would you want to check \n"
+            # response .= "1. My Account \n"
+            response += "1. My Phone Number"
+
+        elif text == "1":
+            response = "END My Phone number is {0}".format(phone_number)
+
+        return HttpResponse(response)
+
+
 def getAccessToken(request):
     consumer_key = "XYwgaaqxewEJGmqEoR56d1D4nv1qMDET"
     consumer_secret= "LEUhc9liIgNAi8x2"
@@ -19,9 +40,7 @@ def getAccessToken(request):
     r = requests.get(api_URL, auth=HTTPBasicAuth(consumer_key, consumer_secret))
     mpesa_access_token = json.loads(r.text)
     validated_mpesa_access_token = mpesa_access_token['access_token']
-    # context = {"validated_mpesa_access_token":validated_mpesa_access_token, "testing":testing}
     return HttpResponse(validated_mpesa_access_token)
-    # return render(request, 'accesstoken.html',context )
 
 def lipa_na_mpesa_online(request):
     access_token = MpesaAccessToken.validated_mpesa_access_token
