@@ -48,6 +48,15 @@ class MpesaPayment(BaseModel):
     def __str__(self):
         return self.first_name
 
+class Payment(models.Model):
+    reg_no = models.IntegerField(null=True)
+    amount = models.IntegerField(null=True)
+    phonenumber= models.CharField(max_length=25,null=True)
+
+class session_levels(models.Model):
+	session_id = models.CharField(max_length=25,primary_key=True)
+	phonenumber= models.CharField(max_length=25,null=True)
+	level = models.IntegerField(null=True)
 
 class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
