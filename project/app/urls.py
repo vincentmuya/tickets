@@ -6,9 +6,7 @@ from django.urls import path
 
 
 urlpatterns=[
-    url(r'^$',views.callback, name ='callback'),
-    url(r'^profile/(?P<username>[\w\-]+)/$', views.profile, name='profile'),
-    url(r'^edit/profile/(\d+)$', views.update_profile, name='update-profile'),
+    url(r'^$',views.ussd_callback, name ='ussd_callback'),
     url('access/token', views.getAccessToken, name='get_mpesa_access_token'),
     url('online/lipa', views.lipa_na_mpesa_online, name='lipa_na_mpesa'),
     #register, confirmation, validation and callback url

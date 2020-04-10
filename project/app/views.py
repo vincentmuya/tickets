@@ -1,36 +1,70 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.http  import HttpResponse, JsonResponse
 from django.contrib.auth.decorators import login_required
-from .models import Profile, MpesaPayment
+from .models import Transaction, MpesaPayment, Payment
 from django.db import transaction
-from .forms import UserForm,ProfileForm
+# from .forms import UserForm,ProfileForm
 import requests
 from requests.auth import HTTPBasicAuth
 import json
 from .mpesa_credentials import MpesaAccessToken, LipanaMpesaPpassword
 from django.views.decorators.csrf import csrf_exempt
-
+import datetime
 # Create your views here.
+
 @csrf_exempt
-def callback(request):
-    if request.method == "POST":
-        session_id = request.POST.get("sessionId")
-        service_code = request.POST.get("serviceCode")
-        phone_number = request.POST.get("phoneNumber")
-        text = request.POST.get("text")
+def ussd_callback(request):
+    '''
+    function to handle callback calls from africa's talking api
+    '''
+    if request.method == 'POST' and request.POST:
+        sessionId = request.POST.get('sessionId')
+        serviceCode = request.POST.get('serviceCode')
+        phoneNumber = request.POST.get('phoneNumber')
+        text = request.POST.get('text')
+        now = datetime.datetime.now()
 
-        response = ""
 
-        if text == "":
-            response = "CON What would you want to check \n"
-            # response .= "1. My Account \n"
-            response += "1. My Phone Number"
+        textList = text.split('*')
+        userResponse = textList[-1].strip()
 
-        elif text == "1":
-            response = "END My Phone number is {0}".format(phone_number)
+        level = len(textList)-1
 
-        return HttpResponse(response)
 
+
+        if level == 0:
+            if userResponse == "":
+                response = "CON Welcome to Lipa\n Enter Registration number\n"
+
+                return HttpResponse(response, content_type='text/plain')
+
+            session_level1 = Transaction.objects.get(phonenumber=phoneNumber)
+            session_level1.level = 1
+            session_level1.reg_no = userResponse
+            session_level1.save()
+            response = "CON Please enter amount:\n"
+
+            return HttpResponse(response, content_type='text/plain')
+
+        if level == 1:
+            session_level2 = Transaction.objects.get(phonenumber=phoneNumber)
+            session_level2.level = 2
+            session_level2.amount = userResponse
+            session_level2.save()
+            response = "CON Confirm Registration number: \n Amount:\n"
+            response += "1. Yes\n"
+            response += "2. No\n"
+
+            return HttpResponse(response, content_type='text/plain')
+
+        if level == 2:
+            session_level3 = Transaction.objects.get(phonenumber=phoneNumber)
+            session_level3.level = 3
+            session_level3.confirm = userResponse
+            session_level3.save()
+            if userResponse == "1":
+                response = "END Wait for Payment validation"
+            return HttpResponse(response, content_type='text/plain')
 
 def getAccessToken(request):
     consumer_key = "XYwgaaqxewEJGmqEoR56d1D4nv1qMDET"
@@ -107,27 +141,3 @@ def confirmation(request):
         "ResultDesc": "Accepted"
     }
     return JsonResponse(dict(context))
-
-@login_required(login_url='/accounts/login')
-def profile(request, username):
-    profile = Profile.objects.filter(user_id=request.user.id)
-    return render(request, 'profile.html')
-
-@login_required
-@transaction.atomic
-def update_profile(request, user_id):
-    if request.method == 'POST':
-        user_form = UserForm(request.POST, instance=request.user)
-        profile_form = ProfileForm(request.POST, request.FILES, instance=request.user.profile)
-        if user_form.is_valid() and profile_form.is_valid():
-            user_form.save()
-            profile_form.save()
-            return redirect('/')
-
-    else:
-        user_form = UserForm(instance=request.user)
-        profile_form = ProfileForm(instance=request.user.profile)
-    return render(request, 'edit_profile.html', {
-        'user_form': user_form,
-        'profile_form': profile_form
-    })

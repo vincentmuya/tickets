@@ -3,6 +3,17 @@ from django.contrib.auth.models import User
 from django.db.models.signals import post_save
 
 # Create your models here.
+class Transaction(models.Model):
+    reg_no = models.CharField(max_length=30, null=True) # Registration Number
+    amount = models.CharField(max_length=60, null=True) # Amount
+    confirm= models.IntegerField(null=True)
+    phonenumber= models.CharField(max_length=60)
+    level = models.IntegerField(null=True)
+
+    def save_user(self):
+        self.save()
+
+
 class BaseModel(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -51,31 +62,9 @@ class MpesaPayment(BaseModel):
 class Payment(models.Model):
     reg_no = models.IntegerField(null=True)
     amount = models.IntegerField(null=True)
-    phonenumber= models.CharField(max_length=25,null=True)
+    phone_number= models.CharField(max_length=25,null=True)
 
 class session_levels(models.Model):
 	session_id = models.CharField(max_length=25,primary_key=True)
-	phonenumber= models.CharField(max_length=25,null=True)
+	phone_number= models.CharField(max_length=25,null=True)
 	level = models.IntegerField(null=True)
-
-class Profile(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE)
-    profile_image = models.ImageField(upload_to="profile_pic/",blank = True, null = True)
-    phone_number = models.IntegerField(blank = True, null = True )
-
-    def save_profile(self):
-        self.save()
-
-    # def __str__(self):
-    #     return self.user
-
-    @classmethod
-    def this_profile(cls):
-        profile = cls.objects.all()
-        return profile
-
-def Create_profile(sender, **kwargs):
-    if kwargs['created']:
-        user_profile = Profile.objects.create(user=kwargs['instance'])
-
-post_save.connect(Create_profile,sender=User)
