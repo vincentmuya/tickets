@@ -1,15 +1,10 @@
-from django.shortcuts import render, get_object_or_404, redirect
 from django.http  import HttpResponse, JsonResponse
-from django.contrib.auth.decorators import login_required
-from .models import Transaction, MpesaPayment, Payment
-from django.db import transaction
-# from .forms import UserForm,ProfileForm
+from .models import Transaction, MpesaPayment
 import requests
 from requests.auth import HTTPBasicAuth
 import json
 from .mpesa_credentials import MpesaAccessToken, LipanaMpesaPpassword
 from django.views.decorators.csrf import csrf_exempt
-import datetime
 # Create your views here.
 
 @csrf_exempt
@@ -22,15 +17,11 @@ def ussd_callback(request):
         serviceCode = request.POST.get('serviceCode')
         phoneNumber = request.POST.get('phoneNumber')
         text = request.POST.get('text')
-        now = datetime.datetime.now()
-
 
         textList = text.split('*')
         userResponse = textList[-1].strip()
 
         level = len(textList)-1
-
-
 
         if level == 0:
             if userResponse == "":
@@ -51,7 +42,8 @@ def ussd_callback(request):
             session_level2.level = 2
             session_level2.amount = userResponse
             session_level2.save()
-            response = "CON Confirm Registration number: \n Amount:\n"
+            amount_confirmation = request.POST.get('amount')
+            response = "CON Confirm Registration number:{} \n Amount:{}\n".format(session_level2.reg_no, session_level2.amount)
             response += "1. Yes\n"
             response += "2. No\n"
 
@@ -64,7 +56,8 @@ def ussd_callback(request):
             session_level3.save()
             if userResponse == "1":
                 response = "END Wait for Payment validation"
-            return HttpResponse(response, content_type='text/plain')
+
+            return HttpResponse(response, {'session_level3':session_level3})
 
 def getAccessToken(request):
     consumer_key = "XYwgaaqxewEJGmqEoR56d1D4nv1qMDET"

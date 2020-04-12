@@ -1,6 +1,4 @@
 from django.db import models
-from django.contrib.auth.models import User
-from django.db.models.signals import post_save
 
 # Create your models here.
 class Transaction(models.Model):
@@ -10,9 +8,8 @@ class Transaction(models.Model):
     phonenumber= models.CharField(max_length=60)
     level = models.IntegerField(null=True)
 
-    def save_user(self):
+    def save_transaction(self):
         self.save()
-
 
 class BaseModel(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
@@ -58,13 +55,3 @@ class MpesaPayment(BaseModel):
 
     def __str__(self):
         return self.first_name
-
-class Payment(models.Model):
-    reg_no = models.IntegerField(null=True)
-    amount = models.IntegerField(null=True)
-    phone_number= models.CharField(max_length=25,null=True)
-
-class session_levels(models.Model):
-	session_id = models.CharField(max_length=25,primary_key=True)
-	phone_number= models.CharField(max_length=25,null=True)
-	level = models.IntegerField(null=True)
