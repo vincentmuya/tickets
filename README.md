@@ -14,7 +14,7 @@ A USSD application used for making payments.
 
 ![Image description](static/img/wait.png)
 
-![Image description](static/img/stk.png)
+![Image description](static/img/stk.jpg)
 
 ## Known Bugs
 
