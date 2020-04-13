@@ -25,7 +25,7 @@ def ussd_callback(request):
 
         if level == 0:
             if userResponse == "":
-                response = "CON Welcome to Lipa\n Enter Registration number\n"
+                response = "CON Enter Registration number\n"
 
                 return HttpResponse(response, content_type='text/plain')
 
@@ -43,7 +43,7 @@ def ussd_callback(request):
             session_level2.amount = userResponse
             session_level2.save()
             amount_confirmation = request.POST.get('amount')
-            response = "CON Confirm Registration number:{} \n Amount:{}\n".format(session_level2.reg_no, session_level2.amount)
+            response = "CON Confirm Transaction.\n Registration number:{} \n Amount:{}\n".format(session_level2.reg_no, session_level2.amount)
             response += "1. Yes\n"
             response += "2. No\n"
 
