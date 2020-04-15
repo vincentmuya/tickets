@@ -4,17 +4,7 @@
 
 A USSD application used for making payments.
 
-![Image description](static/img/shortCode.png)
-
-![Image description](static/img/registration.png)
-
-![Image description](static/img/amount.png)
-
-![Image description](static/img/confirm.png)
-
-![Image description](static/img/wait.png)
-
-![Image description](static/img/stk.jpg)
+![Image description](static/img/USSD.png)
 
 ## Known Bugs
 
