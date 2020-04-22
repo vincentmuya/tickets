@@ -56,8 +56,10 @@ def ussd_callback(request):
             session_level3.save()
             if userResponse == "1":
                 response = "END Wait for Payment validation"
+            else:
+                response = "END Enter the correct credentials"
 
-            return HttpResponse(response, {'session_level3':session_level3})
+            return HttpResponse(response, content_type='text/plain')
 
 def getAccessToken(request):
     consumer_key = "XYwgaaqxewEJGmqEoR56d1D4nv1qMDET"
