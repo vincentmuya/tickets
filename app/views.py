@@ -54,12 +54,15 @@ def ussd_callback(request):
             session_level3.level = 3
             session_level3.confirm = userResponse
             session_level3.save()
+            paying_number = session_level3.phonenumber
             if userResponse == "1":
                 response = "END Wait for Payment validation"
             else:
                 response = "END Enter the correct credentials"
-
-            return HttpResponse(response, content_type='text/plain')
+            print(paying_number)
+            print(phoneNumber)
+            return HttpResponse(response, content_type="text/plain")
+        return phoneNumber
 
 def getAccessToken(request):
     consumer_key = "XYwgaaqxewEJGmqEoR56d1D4nv1qMDET"
@@ -72,6 +75,7 @@ def getAccessToken(request):
     return HttpResponse(validated_mpesa_access_token)
 
 def lipa_na_mpesa_online(request):
+    phoneNumber = ussd_callback(request)
     access_token = MpesaAccessToken.validated_mpesa_access_token
     api_url = "https://sandbox.safaricom.co.ke/mpesa/stkpush/v1/processrequest"
     headers = {"Authorization": "Bearer %s" % access_token}
@@ -81,9 +85,9 @@ def lipa_na_mpesa_online(request):
         "Timestamp": LipanaMpesaPpassword.lipa_time,
         "TransactionType": "CustomerPayBillOnline",
         "Amount": 1,
-        "PartyA": 254710902541,
+        "PartyA": phoneNumber,  # The phone number sending the money
         "PartyB": LipanaMpesaPpassword.Business_short_code,
-        "PhoneNumber": 254710902541,
+        "PhoneNumber": phoneNumber,  # The mobile number to receive  STK pin prompt
         "CallBackURL": "https://sandbox.safaricom.co.ke/mpesa/",
         "AccountReference": "Vincent",
         "TransactionDesc": "Testing stk push"
