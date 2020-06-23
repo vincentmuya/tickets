@@ -8,7 +8,7 @@ from django.views.decorators.csrf import csrf_exempt
 # Create your views here.
 
 @csrf_exempt
-def ussd_callback(request):
+def ussd_callback(request, number_of_user=None):
     '''
     function to handle callback calls from africa's talking api
     '''
@@ -54,15 +54,23 @@ def ussd_callback(request):
             session_level3.level = 3
             session_level3.confirm = userResponse
             session_level3.save()
-            paying_number = session_level3.phonenumber
+            number_of_user = session_level3.phonenumber
             if userResponse == "1":
                 response = "END Wait for Payment validation"
+                print(number_of_user)
+                lipa_na_mpesa_online(request)  # Trying to call function when condition is met
             else:
                 response = "END Enter the correct credentials"
-            print(paying_number)
-            print(phoneNumber)
+            print(number_of_user)
             return HttpResponse(response, content_type="text/plain")
-        return phoneNumber
+
+        return number_of_user
+
+def paying_number(request):
+    number_of_user = ussd_callback(request)
+    # ussd_number = number_of_user
+    ussd_number = [number_of_user]
+    return ussd_number
 
 def getAccessToken(request):
     consumer_key = "XYwgaaqxewEJGmqEoR56d1D4nv1qMDET"
@@ -74,8 +82,10 @@ def getAccessToken(request):
     validated_mpesa_access_token = mpesa_access_token['access_token']
     return HttpResponse(validated_mpesa_access_token)
 
+
 def lipa_na_mpesa_online(request):
-    phoneNumber = ussd_callback(request)
+    ussd_number = paying_number(request)
+    sdk_number = ussd_number
     access_token = MpesaAccessToken.validated_mpesa_access_token
     api_url = "https://sandbox.safaricom.co.ke/mpesa/stkpush/v1/processrequest"
     headers = {"Authorization": "Bearer %s" % access_token}
@@ -85,9 +95,9 @@ def lipa_na_mpesa_online(request):
         "Timestamp": LipanaMpesaPpassword.lipa_time,
         "TransactionType": "CustomerPayBillOnline",
         "Amount": 1,
-        "PartyA": phoneNumber,  # The phone number sending the money
+        "PartyA": ussd_number,  # The phone number sending the money
         "PartyB": LipanaMpesaPpassword.Business_short_code,
-        "PhoneNumber": phoneNumber,  # The mobile number to receive  STK pin prompt
+        "PhoneNumber": ussd_number,  # The mobile number to receive  STK pin prompt
         "CallBackURL": "https://sandbox.safaricom.co.ke/mpesa/",
         "AccountReference": "Vincent",
         "TransactionDesc": "Testing stk push"
