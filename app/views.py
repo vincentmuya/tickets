@@ -8,7 +8,7 @@ from django.views.decorators.csrf import csrf_exempt
 # Create your views here.
 
 @csrf_exempt
-def ussd_callback(request, number_of_user=None):
+def ussd_callback(request):
     '''
     function to handle callback calls from africa's talking api
     '''
@@ -57,14 +57,13 @@ def ussd_callback(request, number_of_user=None):
             number_of_user = session_level3.phonenumber
             if userResponse == "1":
                 response = "END Wait for Payment validation"
-                print(number_of_user)
-                lipa_na_mpesa_online(request)  # Trying to call function when condition is met
+                if response == "1":
+                    lipa_na_mpesa_online(request)  # Trying to call function when condition is met
+                    print(number_of_user)
             else:
                 response = "END Enter the correct credentials"
             print(number_of_user)
             return HttpResponse(response, content_type="text/plain")
-
-        return number_of_user
 
 def paying_number(request):
     number_of_user = ussd_callback(request)
