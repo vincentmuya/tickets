@@ -29,7 +29,7 @@ DEBUG = True
 CSRF_COOKIE_SECURE = True
 CSRF_COOKIE_HTTPONLY = True
 
-ALLOWED_HOSTS = ["029853540cf3.ngrok.io", "127.0.0.1", "localhost"]
+ALLOWED_HOSTS = ["ae0f8765eb65.ngrok.io", "127.0.0.1", "localhost"]
 
 LOGIN_REDIRECT_URL ='/'
 LOGOUT_REDIRECT_URL = '/'

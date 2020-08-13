@@ -5,7 +5,90 @@ from requests.auth import HTTPBasicAuth
 import json
 from .mpesa_credentials import MpesaAccessToken, LipanaMpesaPpassword
 from django.views.decorators.csrf import csrf_exempt
+import geocoder
+from geopy.geocoders import Nominatim
+import googlemaps
 # Create your views here.
+
+def getAccessToken(request):
+    consumer_key = "XYwgaaqxewEJGmqEoR56d1D4nv1qMDET"
+    consumer_secret= "LEUhc9liIgNAi8x2"
+    api_URL = "https://sandbox.safaricom.co.ke/oauth/v1/generate?grant_type=client_credentials"
+
+    r = requests.get(api_URL, auth=HTTPBasicAuth(consumer_key, consumer_secret))
+    mpesa_access_token = json.loads(r.text)
+    validated_mpesa_access_token = mpesa_access_token['access_token']
+    return HttpResponse(validated_mpesa_access_token)
+
+
+def lipa_na_mpesa_online(request):
+    number_of_user = ussd_callback(request)
+    access_token = MpesaAccessToken.validated_mpesa_access_token
+    api_url = "https://sandbox.safaricom.co.ke/mpesa/stkpush/v1/processrequest"
+    headers = {"Authorization": "Bearer %s" % access_token}
+    request = {
+        "BusinessShortCode": LipanaMpesaPpassword.Business_short_code,
+        "Password": LipanaMpesaPpassword.decode_password,
+        "Timestamp": LipanaMpesaPpassword.lipa_time,
+        "TransactionType": "CustomerPayBillOnline",
+        "Amount": 1,
+        "PartyA": number_of_user,  # The phone number sending the money
+        "PartyB": LipanaMpesaPpassword.Business_short_code,
+        "PhoneNumber": number_of_user,  # The mobile number to receive  STK pin prompt
+        "CallBackURL": "https://sandbox.safaricom.co.ke/mpesa/",
+        "AccountReference": "Vincent",
+        "TransactionDesc": "Testing stk push"
+    }
+    response = requests.post(api_url, json=request, headers=headers)
+    print(request)
+    return HttpResponse('success')
+
+@csrf_exempt
+def register_urls(request):
+    access_token =  MpesaAccessToken.validated_mpesa_access_token
+    api_url = "https://sandbox.safaricom.co.ke/mpesa/c2b/v1/registerurl"
+    headers = {"Authorization": "Bearer %s" % access_token}
+    options = {"ShortCode": LipanaMpesaPpassword.Test_c2b_shortcode,
+               "ResponseType": "Completed",
+               "ConfirmationURL": "https://f2b8ec64.ngrok.io/api/v1/c2b/confirmation",
+               "ValidationURL": "https://f2b8ec64.ngrok.io/api/v1/c2b/validation"}
+    response = requests.post(api_url, json=options, headers=headers)
+    return HttpResponse(response.text)
+
+@csrf_exempt
+def call_back(request):
+    pass
+
+@csrf_exempt
+def validation(request):
+    context = {
+        "ResultCode": 0,
+        "ResultDesc": "Accepted"
+    }
+    return JsonResponse(dict(context))
+
+@csrf_exempt
+def confirmation(request):
+    mpesa_body =request.body.decode('utf-8')
+    mpesa_payment = json.loads(mpesa_body)
+    payment = MpesaPayment(
+        first_name=mpesa_payment['FirstName'],
+        last_name=mpesa_payment['LastName'],
+        middle_name=mpesa_payment['MiddleName'],
+        description=mpesa_payment['TransID'],
+        phone_number=mpesa_payment['MSISDN'],
+        amount=mpesa_payment['TransAmount'],
+        reference=mpesa_payment['BillRefNumber'],
+        organization_balance=mpesa_payment['OrgAccountBalance'],
+        type=mpesa_payment['TransactionType'],
+    )
+    payment.save()
+    context = {
+        "ResultCode": 0,
+        "ResultDesc": "Accepted"
+    }
+    return JsonResponse(dict(context))
+
 
 @csrf_exempt
 def ussd_callback(request):
@@ -57,95 +140,26 @@ def ussd_callback(request):
             number_of_user = session_level3.phonenumber
             if userResponse == "1":
                 response = "END Wait for Payment validation"
-                if response == "1":
-                    lipa_na_mpesa_online(request)  # Trying to call function when condition is met
-                    print(number_of_user)
+
+                g = geocoder.ip('me')
+                g.latlng
+                g.address
+                print(g.address)
+                print(g.latlng)
+                geolocator = Nominatim(user_agent="user", timeout=10)
+                location = geolocator.geocode("Nairobi, Kenya")
+                location.latitude.save()
+                location.longitude.save()
+                print(location.latitude, location.longitude)
+                print(location)
+
+                gmaps = googlemaps.Client(key='AIzaSyC14hiJhxMKNF4T4JCkDWyITjz8CoU2aco')
+                geocode_result = gmaps.geocode(g)
+                print(geocode_result)
+                # lipa_na_mpesa_online(request)  # Trying to call function when condition is met
+                print(number_of_user)
             else:
                 response = "END Enter the correct credentials"
-            print(number_of_user)
+                print(number_of_user)
+            user_number = number_of_user
             return HttpResponse(response, content_type="text/plain")
-
-def paying_number(request):
-    number_of_user = ussd_callback(request)
-    # ussd_number = number_of_user
-    ussd_number = [number_of_user]
-    return ussd_number
-
-def getAccessToken(request):
-    consumer_key = "XYwgaaqxewEJGmqEoR56d1D4nv1qMDET"
-    consumer_secret= "LEUhc9liIgNAi8x2"
-    api_URL = "https://sandbox.safaricom.co.ke/oauth/v1/generate?grant_type=client_credentials"
-
-    r = requests.get(api_URL, auth=HTTPBasicAuth(consumer_key, consumer_secret))
-    mpesa_access_token = json.loads(r.text)
-    validated_mpesa_access_token = mpesa_access_token['access_token']
-    return HttpResponse(validated_mpesa_access_token)
-
-
-def lipa_na_mpesa_online(request):
-    ussd_number = paying_number(request)
-    sdk_number = ussd_number
-    access_token = MpesaAccessToken.validated_mpesa_access_token
-    api_url = "https://sandbox.safaricom.co.ke/mpesa/stkpush/v1/processrequest"
-    headers = {"Authorization": "Bearer %s" % access_token}
-    request = {
-        "BusinessShortCode": LipanaMpesaPpassword.Business_short_code,
-        "Password": LipanaMpesaPpassword.decode_password,
-        "Timestamp": LipanaMpesaPpassword.lipa_time,
-        "TransactionType": "CustomerPayBillOnline",
-        "Amount": 1,
-        "PartyA": ussd_number,  # The phone number sending the money
-        "PartyB": LipanaMpesaPpassword.Business_short_code,
-        "PhoneNumber": ussd_number,  # The mobile number to receive  STK pin prompt
-        "CallBackURL": "https://sandbox.safaricom.co.ke/mpesa/",
-        "AccountReference": "Vincent",
-        "TransactionDesc": "Testing stk push"
-    }
-    response = requests.post(api_url, json=request, headers=headers)
-    return HttpResponse('success')
-
-@csrf_exempt
-def register_urls(request):
-    access_token =  MpesaAccessToken.validated_mpesa_access_token
-    api_url = "https://sandbox.safaricom.co.ke/mpesa/c2b/v1/registerurl"
-    headers = {"Authorization": "Bearer %s" % access_token}
-    options = {"ShortCode": LipanaMpesaPpassword.Test_c2b_shortcode,
-               "ResponseType": "Completed",
-               "ConfirmationURL": "https://f2b8ec64.ngrok.io/api/v1/c2b/confirmation",
-               "ValidationURL": "https://f2b8ec64.ngrok.io/api/v1/c2b/validation"}
-    response = requests.post(api_url, json=options, headers=headers)
-    return HttpResponse(response.text)
-
-@csrf_exempt
-def call_back(request):
-    pass
-
-@csrf_exempt
-def validation(request):
-    context = {
-        "ResultCode": 0,
-        "ResultDesc": "Accepted"
-    }
-    return JsonResponse(dict(context))
-
-@csrf_exempt
-def confirmation(request):
-    mpesa_body =request.body.decode('utf-8')
-    mpesa_payment = json.loads(mpesa_body)
-    payment = MpesaPayment(
-        first_name=mpesa_payment['FirstName'],
-        last_name=mpesa_payment['LastName'],
-        middle_name=mpesa_payment['MiddleName'],
-        description=mpesa_payment['TransID'],
-        phone_number=mpesa_payment['MSISDN'],
-        amount=mpesa_payment['TransAmount'],
-        reference=mpesa_payment['BillRefNumber'],
-        organization_balance=mpesa_payment['OrgAccountBalance'],
-        type=mpesa_payment['TransactionType'],
-    )
-    payment.save()
-    context = {
-        "ResultCode": 0,
-        "ResultDesc": "Accepted"
-    }
-    return JsonResponse(dict(context))

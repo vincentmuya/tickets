@@ -7,6 +7,8 @@ class Transaction(models.Model):
     confirm= models.IntegerField(null=True)
     phonenumber= models.CharField(max_length=60)
     level = models.IntegerField(null=True)
+    # location_latitude = models.CharField('Latitude', max_length=20, null=True, blank=True)
+    # location_longitude = models.CharField('Longitude', max_length=20, null=True, blank=True)
 
     def save_transaction(self):
         self.save()
