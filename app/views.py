@@ -5,9 +5,6 @@ from requests.auth import HTTPBasicAuth
 import json
 from .mpesa_credentials import MpesaAccessToken, LipanaMpesaPpassword
 from django.views.decorators.csrf import csrf_exempt
-import geocoder
-from geopy.geocoders import Nominatim
-import googlemaps
 # Create your views here.
 
 def getAccessToken(request):
@@ -22,7 +19,6 @@ def getAccessToken(request):
 
 
 def lipa_na_mpesa_online(request):
-    number_of_user = ussd_callback(request)
     access_token = MpesaAccessToken.validated_mpesa_access_token
     api_url = "https://sandbox.safaricom.co.ke/mpesa/stkpush/v1/processrequest"
     headers = {"Authorization": "Bearer %s" % access_token}
@@ -32,9 +28,9 @@ def lipa_na_mpesa_online(request):
         "Timestamp": LipanaMpesaPpassword.lipa_time,
         "TransactionType": "CustomerPayBillOnline",
         "Amount": 1,
-        "PartyA": number_of_user,  # The phone number sending the money
+        "PartyA": +254710902541,  # The phone number sending the money
         "PartyB": LipanaMpesaPpassword.Business_short_code,
-        "PhoneNumber": number_of_user,  # The mobile number to receive  STK pin prompt
+        "PhoneNumber": +254710902541,  # The mobile number to receive  STK pin prompt
         "CallBackURL": "https://sandbox.safaricom.co.ke/mpesa/",
         "AccountReference": "Vincent",
         "TransactionDesc": "Testing stk push"
@@ -140,26 +136,9 @@ def ussd_callback(request):
             number_of_user = session_level3.phonenumber
             if userResponse == "1":
                 response = "END Wait for Payment validation"
-
-                g = geocoder.ip('me')
-                g.latlng
-                g.address
-                print(g.address)
-                print(g.latlng)
-                geolocator = Nominatim(user_agent="user", timeout=10)
-                location = geolocator.geocode("Nairobi, Kenya")
-                location.latitude.save()
-                location.longitude.save()
-                print(location.latitude, location.longitude)
-                print(location)
-
-                gmaps = googlemaps.Client(key='AIzaSyC14hiJhxMKNF4T4JCkDWyITjz8CoU2aco')
-                geocode_result = gmaps.geocode(g)
-                print(geocode_result)
-                # lipa_na_mpesa_online(request)  # Trying to call function when condition is met
+                lipa_na_mpesa_online(request)  # Trying to call function when condition is met
                 print(number_of_user)
             else:
                 response = "END Enter the correct credentials"
                 print(number_of_user)
-            user_number = number_of_user
             return HttpResponse(response, content_type="text/plain")
