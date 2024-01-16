@@ -12,7 +12,7 @@ https://docs.djangoproject.com/en/2.0/ref/settings/
 
 import os
 import dj_database_url
-from decouple import config
+# from decouple import config
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -29,7 +29,7 @@ DEBUG = True
 CSRF_COOKIE_SECURE = True
 CSRF_COOKIE_HTTPONLY = True
 
-ALLOWED_HOSTS = ["e5338dab03ce.ngrok.io", "127.0.0.1", "localhost"]
+ALLOWED_HOSTS = ["e424-154-159-237-78.ngrok-free.app", "127.0.0.1", "localhost"]
 
 LOGIN_REDIRECT_URL ='/'
 LOGOUT_REDIRECT_URL = '/'
@@ -89,9 +89,9 @@ WSGI_APPLICATION = 'project.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME':'ticket',
-        'USER': 'v1nc3n7',
-        'PASSWORD': '12345'
+        'NAME':'tickets',
+        'USER': 'muya',
+        'PASSWORD': '123456'
     }
 }
 db_from_env = dj_database_url.config(conn_max_age=500)

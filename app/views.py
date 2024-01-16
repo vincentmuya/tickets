@@ -1,4 +1,5 @@
 from django.http  import HttpResponse, JsonResponse
+from django.shortcuts import render, get_object_or_404
 from .models import Transaction, MpesaPayment
 import requests
 from requests.auth import HTTPBasicAuth
@@ -94,7 +95,7 @@ def ussd_callback(request):
     if request.method == 'POST' and request.POST:
         sessionId = request.POST.get('sessionId')
         serviceCode = request.POST.get('serviceCode')
-        phoneNumber = request.POST.get('phoneNumber')
+        PhoneNumber = request.POST.get("phoneNumber")
         text = request.POST.get('text')
 
         textList = text.split('*')
@@ -106,9 +107,12 @@ def ussd_callback(request):
             if userResponse == "":
                 response = "CON Enter Registration number\n"
 
+                print(sessionId)
+                print(serviceCode)
+                print(PhoneNumber)
                 return HttpResponse(response, content_type='text/plain')
 
-            session_level1 = Transaction.objects.get(phonenumber=phoneNumber)
+            session_level1 = get_object_or_404(Transaction, phonenumber=PhoneNumber)
             session_level1.level = 1
             session_level1.reg_no = userResponse
             session_level1.save()
@@ -117,7 +121,8 @@ def ussd_callback(request):
             return HttpResponse(response, content_type='text/plain')
 
         if level == 1:
-            session_level2 = Transaction.objects.get(phonenumber=phoneNumber)
+
+            session_level2 = Transaction.objects.get(phonenumber=PhoneNumber)
             session_level2.level = 2
             session_level2.amount = userResponse
             session_level2.save()
@@ -129,7 +134,8 @@ def ussd_callback(request):
             return HttpResponse(response, content_type='text/plain')
 
         if level == 2:
-            session_level3 = Transaction.objects.get(phonenumber=phoneNumber)
+
+            session_level3 = Transaction.objects.get(phonenumber=PhoneNumber)
             session_level3.level = 3
             session_level3.confirm = userResponse
             session_level3.save()

@@ -1,0 +1,5 @@
+Setup and install requirements.
+Link to database and make migrations.
+Run python server
+run ngrok ngrok http 8000.
+Set the callback url from ngrok in allowed host and use it as callback address in africastalking.
