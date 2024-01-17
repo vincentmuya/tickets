@@ -2,8 +2,8 @@ from django.db import models
 
 # Create your models here.
 class Transaction(models.Model):
-    reg_no = models.CharField(max_length=30, null=True) # Registration Number
-    amount = models.CharField(max_length=60, null=True) # Amount
+    reg_no = models.IntegerField(max_length=30, null=True) # Registration Number
+    amount = models.IntegerField(max_length=60, null=True) # Amount
     confirm= models.IntegerField(null=True)
     phonenumber= models.CharField(max_length=60)
     level = models.IntegerField(null=True)
