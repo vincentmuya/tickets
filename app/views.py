@@ -23,15 +23,21 @@ def lipa_na_mpesa_online(request):
     access_token = MpesaAccessToken.validated_mpesa_access_token
     api_url = "https://sandbox.safaricom.co.ke/mpesa/stkpush/v1/processrequest"
     headers = {"Authorization": "Bearer %s" % access_token}
+
+    # Retrieve number_of_user from the session
+    number_of_user = request.session.get('number_of_user', '')
+    # Retrieve amount from the session
+    user_amount = request.session.get('user_amount', '')
+
     request = {
         "BusinessShortCode": LipanaMpesaPpassword.Business_short_code,
         "Password": LipanaMpesaPpassword.decode_password,
         "Timestamp": LipanaMpesaPpassword.lipa_time,
         "TransactionType": "CustomerPayBillOnline",
-        "Amount": 1,
-        "PartyA": +254710902541,  # The phone number sending the money
+        "Amount": user_amount, #Amount not being fetched from the ussd_callback() session.
+        "PartyA": number_of_user,  # The phone number sending the money/ For this to work in testing, hard input phone number ie +25471234...
         "PartyB": LipanaMpesaPpassword.Business_short_code,
-        "PhoneNumber": +254710902541,  # The mobile number to receive  STK pin prompt
+        "PhoneNumber": number_of_user,  # The mobile number to receive  STK pin prompt/ For this to work in testing, hard input phone number ie +25471234...
         "CallBackURL": "https://sandbox.safaricom.co.ke/mpesa/",
         "AccountReference": "Vincent",
         "TransactionDesc": "Testing stk push"
@@ -130,6 +136,10 @@ def ussd_callback(request):
             response = "CON Confirm Transaction.\n Registration number:{} \n Amount:{}\n".format(session_level2.reg_no, session_level2.amount)
             response += "1. Yes\n"
             response += "2. No\n"
+            user_amount = session_level2.amount
+            # Save amount in the session
+            request.session['amount'] = user_amount
+            print(user_amount)
 
             return HttpResponse(response, content_type='text/plain')
 
@@ -140,9 +150,13 @@ def ussd_callback(request):
             session_level3.confirm = userResponse
             session_level3.save()
             number_of_user = session_level3.phonenumber
+
+            # Save number_of_user in the session
+            request.session['number_of_user'] = number_of_user
+
             if userResponse == "1":
                 response = "END Wait for Payment validation"
-                lipa_na_mpesa_online(request)  # Trying to call function when condition is met
+                lipa_na_mpesa_online(request)  # Calling a function when condition is met
                 print(number_of_user)
             else:
                 response = "END Enter the correct credentials"
